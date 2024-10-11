@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,19 +51,27 @@ public class FileController {
 	
 	@CrossOrigin(origins = "http://localhost:3000")
 	@GetMapping("/download/{id}")
-	public byte[] getFile(@PathVariable("id") String id) throws IOException {
+	public ResponseEntity<ByteArrayResource> getFile(@PathVariable("id") String id) throws IOException {
 		File folder = new File(path + id);
-		File[] files = folder.listFiles();
-		if (files.length!=1) { 
-			throw new FileException(id); 
+		File zip = null;
+		for (File f : folder.listFiles()) {
+			if (f.getName().contains(".zip")) {
+				zip = f;
+				break;
+			}
 		}
-		try (InputStream in = new FileInputStream(files[0])) {
+		
+		if (zip==null) throw new FileException(id); 
+		
+		try (InputStream in = new FileInputStream(zip)) {
 	        byte[] byteArray = IOUtils.toByteArray(in);
-	        return byteArray;
-	    } catch (FileNotFoundException e) {
-	        throw new FileException(e.getMessage());
+	        ByteArrayResource resource = new ByteArrayResource(byteArray);
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + zip.getName());
+	        headers.add(HttpHeaders.CONTENT_TYPE, "application/zip");
+	        return ResponseEntity.ok().headers(headers).contentLength(byteArray.length).body(resource);
 	    } catch (IOException e) {
-	        throw new IOException("Error reading file: " + files[0].getAbsolutePath(), e);
+	        throw new IOException("Error reading zip file", e);
 	    }
 	}
 }
