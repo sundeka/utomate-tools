@@ -1,6 +1,8 @@
 package com.utomate.utomateTools;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.utomate.utomateTools.structs.Driver;
 import com.utomate.utomateTools.structs.Step;
@@ -23,20 +25,9 @@ public class AutomationAttributes {
 	public void setSteps(ArrayList<Step> steps) { this.steps = steps; }
 	
 	// Custom methods
-	public ArrayList<StepType> getAllUniqueStepTypes() {
-		ArrayList<StepType> uniques = new ArrayList<>();
-		for (Step step : steps) {
-			boolean found = false;
-			for (StepType u : uniques) {
-				if (u.equals(step.type)) {
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				uniques.add(step.type);
-			}
-		}
+	public Set<StepType> getAllUniqueStepTypes() {
+		Set<StepType> uniques = new HashSet<>();
+		for (Step step : steps) uniques.add(step.type);
 		return uniques;
 	}
 }
