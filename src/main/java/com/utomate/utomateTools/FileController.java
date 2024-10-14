@@ -33,44 +33,30 @@ public class FileController {
 		JavaFactory java = new JavaFactory();
 		AzureController azure = new AzureController();
 		
-		// Create files
-		ArrayList<String[]> files = new ArrayList<>();
-		String userFileName = attributes.getName();
-		String uuid = UUID.randomUUID().toString();
-		String[] blobNames = {
-				uuid + "_" + userFileName,
-				uuid + "_" + "instructions"
-		};
-		for (int i=0;i<blobNames.length;i++) {
-			String fileName = blobNames[i];
-			try {
-				switch (i) {
-					case 0:
-						files.add(new String[] {fileName, java.writeCode(attributes)});
-						break;
-					case 1:
-						files.add(new String[] {fileName, java.writeInstructions(userFileName)});
-						break;
-				}
-			} catch (IOException e) {
-				throw new FileException(e.getMessage());
-			}
-			System.out.println("SERVER: Successfully created file: \"" + fileName + "\"");
+		// Init blob data
+		AzureBlob blobData = azure.initDataObject();
+		try {
+			blobData.setFileName(attributes.getName());
+			blobData.setCode(java.writeCode(attributes));
+			blobData.setInstructions(java.writeInstructions(attributes.getName()));
+		} catch (IOException e) {
+			throw new FileException(e.getMessage());
+		}
+		System.out.println("AzureBlob created successfully with the following content:");
+		System.out.println(blobData.toString());
+		
+		// Upload blob
+		try (ByteArrayInputStream stream = new ByteArrayInputStream(blobData.getBytes())) {
+			azure.upload(
+					stream, 
+					blobData.getBlobName() + ".json", 
+					blobData.length()
+				);
+		} catch (IOException e) {
+			throw new FileException(e.getMessage());
 		}
 		
-		// Upload to blob storage
-		for (String[] fileObj : files) {
-			String fileName = fileObj[0];
-			String fileContent = fileObj[1];
-			try (ByteArrayInputStream stream = new ByteArrayInputStream(fileContent.getBytes())) {
-				azure.upload(stream, fileName, fileContent.length());
-			} catch (IOException e) {
-				throw new FileException(e.getMessage());
-			}
-			System.out.println("BLOB STORAGE: Successfully uploaded file: \"" + fileName + "\"");
-		}
-
-		return "/api/download/" + uuid;
+		return "/api/download/" + blobData.getBlobName();
 	}
 	
 	@CrossOrigin(origins = "http://localhost:3000")
