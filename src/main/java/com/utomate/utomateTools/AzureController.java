@@ -21,8 +21,14 @@ public class AzureController {
 		System.out.println("AzureController: Successfully created BlobContainerClient");
 	}
 	
+	public AzureBlob initDataObject() {
+		return new AzureBlob();
+	}
+	
 	public void upload(ByteArrayInputStream stream, String fileName, int size) {
 		BlockBlobClient blockBlobClient = blobContainerClient.getBlobClient(fileName).getBlockBlobClient();
+		System.out.println("AzureController: BlockBlobClient initialized.");
 		blockBlobClient.upload(stream, size);
+		System.out.println("AzureController: Blob uploaded!");
 	}
 }
