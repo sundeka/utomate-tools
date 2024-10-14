@@ -46,8 +46,32 @@
     		<artifactId>commons-io</artifactId>
     		<version>2.16.1</version>
 		</dependency>
+		<dependency>
+    		<groupId>com.azure</groupId>
+    		<artifactId>azure-storage-blob</artifactId>
+    		<version>12.28.0</version>
+		</dependency>
+		<dependency>
+  			<groupId>com.azure</groupId>
+  			<artifactId>azure-storage-queue</artifactId>
+  			<version>12.3.0</version>
+		</dependency>
+		<dependency>
+  			<groupId>com.azure</groupId>
+  			<artifactId>azure-storage-file-share</artifactId>
+  			<version>12.24.0</version>
+		</dependency>
+		<dependency>
+  			<groupId>com.azure</groupId>
+  			<artifactId>azure-storage-file-datalake</artifactId>
+  			<version>12.19.1</version>
+		</dependency>
+		<dependency>
+    		<groupId>com.azure</groupId>
+    		<artifactId>azure-identity</artifactId>
+    		<version>1.8.0</version>
+		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
