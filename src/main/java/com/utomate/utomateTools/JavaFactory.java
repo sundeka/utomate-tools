@@ -21,8 +21,8 @@ public class JavaFactory {
 	private ArrayList<String> initializations = new ArrayList<String>();
 	private ArrayList<String> logic = new ArrayList<String>();
 	
-	public JavaFactory(String dir) {
-		this.dir = dir;
+	public JavaFactory() {
+		//this.dir = dir;
 	}
 
 	public void createProject(String fileName) {
@@ -64,20 +64,16 @@ public class JavaFactory {
         zos.close();
         fos.close();
 	}
+
 	
-	public void generateInstructions(String fileName) throws IOException {
+	public String writeInstructions(String fileName) throws IOException {
 		String template = "HOW TO RUN:\n\n"
 				+ "1. Open command prompt in the project folder\n"
 				+ "2. Run the following command: \"java %s.java\"\n"
 				+ "\nTroubleshooting\n\n"
 				+ "- Make sure you have the latest version of Java installed on your machine.\n"
 				+ "- Make sure Java is configured in your system's PATH variables.\n";
-		String text = String.format(template, fileName);
-		File file = new File(dir + "/instructions.txt");
-		FileWriter writer = new FileWriter(file);
-		writer.write(text);
-		writer.close();
-		this.instructionsFile = file.getPath();
+		return String.format(template, fileName);
 	}
 	
 	private void generateImports(AutomationAttributes attrs) {
@@ -133,14 +129,13 @@ public class JavaFactory {
 		}
 	};
 	
-	public void writeCode(AutomationAttributes attributes) throws IOException {		
+	public String writeCode(AutomationAttributes attributes) throws IOException {		
 		// Generate code pieces
 		generateImports(attributes);
 		generateInitializations(attributes);
 		generateLogic(attributes);
 		
 		// String code pieces together
-		FileWriter writer = new FileWriter(mainClass);
 		StringBuilder codeBuffer = new StringBuilder();
 		
 		// Imports
@@ -168,8 +163,6 @@ public class JavaFactory {
 		// Ending brackets
 		codeBuffer.append("\t}\n}");
 		
-		// Write to file
-		writer.write(codeBuffer.toString());
-		writer.close();
+		return codeBuffer.toString();
 	}
 }
