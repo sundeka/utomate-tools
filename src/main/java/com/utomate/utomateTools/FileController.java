@@ -1,10 +1,11 @@
 package com.utomate.utomateTools;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -28,24 +29,47 @@ public class FileController {
 	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping("/generate")
 	public String generateFile(@RequestBody AutomationAttributes attributes) {
-		// Create folder at src/main/resources/files/<uuid>
-		String uuid = UUID.randomUUID().toString();
-		String directory = path + uuid;
-		new File(directory).mkdirs();
-		System.out.println("Folder created at: " + directory);
+		// Initialize clients
+		JavaFactory java = new JavaFactory();
+		AzureController azure = new AzureController();
 		
 		// Create files
-		JavaFactory java = new JavaFactory(directory);	
-		try {
-			java.createProject(attributes.getName());
-			java.generateInstructions(attributes.getName());
-			java.writeCode(attributes);
-			System.out.println("Project created! Converting to .ZIP...");
-			java.createZip(attributes.getName());
-			System.out.println("ZIP conversion successful!");
-		} catch (IOException e) {
-			throw new FileException(e.getMessage());
+		ArrayList<String[]> files = new ArrayList<>();
+		String userFileName = attributes.getName();
+		String uuid = UUID.randomUUID().toString();
+		String[] blobNames = {
+				uuid + "_" + userFileName,
+				uuid + "_" + "instructions"
+		};
+		for (int i=0;i<blobNames.length;i++) {
+			String fileName = blobNames[i];
+			try {
+				switch (i) {
+					case 0:
+						files.add(new String[] {fileName, java.writeCode(attributes)});
+						break;
+					case 1:
+						files.add(new String[] {fileName, java.writeInstructions(userFileName)});
+						break;
+				}
+			} catch (IOException e) {
+				throw new FileException(e.getMessage());
+			}
+			System.out.println("SERVER: Successfully created file: \"" + fileName + "\"");
 		}
+		
+		// Upload to blob storage
+		for (String[] fileObj : files) {
+			String fileName = fileObj[0];
+			String fileContent = fileObj[1];
+			try (ByteArrayInputStream stream = new ByteArrayInputStream(fileContent.getBytes())) {
+				azure.upload(stream, fileName, fileContent.length());
+			} catch (IOException e) {
+				throw new FileException(e.getMessage());
+			}
+			System.out.println("BLOB STORAGE: Successfully uploaded file: \"" + fileName + "\"");
+		}
+
 		return "/api/download/" + uuid;
 	}
 	
