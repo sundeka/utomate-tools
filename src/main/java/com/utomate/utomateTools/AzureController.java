@@ -1,12 +1,13 @@
 package com.utomate.utomateTools;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.file.Path;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
-import com.azure.storage.blob.specialized.BlockBlobClient;
 
 public class AzureController {
 	private final BlobContainerClient blobContainerClient;
@@ -21,14 +22,16 @@ public class AzureController {
 		System.out.println("AzureController: Successfully created BlobContainerClient");
 	}
 	
-	public AzureBlob initDataObject() {
-		return new AzureBlob();
+	public void upload(Path zipFile) {
+		BlobClient blobClient = blobContainerClient.getBlobClient(zipFile.toFile().getName());
+		blobClient.uploadFromFile(zipFile.toString());
+		System.out.println("Uploaded \"" + zipFile.toString() + "\" as a blob to Azure!");
 	}
 	
-	public void upload(ByteArrayInputStream stream, String fileName, int size) {
-		BlockBlobClient blockBlobClient = blobContainerClient.getBlobClient(fileName).getBlockBlobClient();
-		System.out.println("AzureController: BlockBlobClient initialized.");
-		blockBlobClient.upload(stream, size);
-		System.out.println("AzureController: Blob uploaded!");
+	public ByteArrayOutputStream download(String blobName) {
+		BlobClient blobClient = blobContainerClient.getBlobClient(blobName);
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+	    blobClient.downloadStream(outputStream);
+	    return outputStream;
 	}
 }
