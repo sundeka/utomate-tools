@@ -1,7 +1,8 @@
 package com.utomate.utomateTools;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Path;
+import java.io.File;
+import java.io.IOException;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -21,24 +22,36 @@ public class FileController {
 	
 	@CrossOrigin(origins = "http://localhost:3000")
 	@PostMapping("/generate")
-	public String generateFile(@RequestBody AutomationAttributes attributes) {
-		// Initialize clients
+	public String generateFile(@RequestBody AutomationAttributes attributes) throws IOException {
+		// Init variables relevant to try-block
+		File folder = null;
+		File zipFile = null;
+		
+		// Init clients
 		JavaFactory java = new JavaFactory();
-		ZipFactory zipper = new ZipFactory();
+		DirTool dirTool = new DirTool();
 		AzureController azure = new AzureController();
 		
-		// File operations
-		Path folder = zipper.initFolder();
-		Path zipFile = zipper.createZip(folder);
-		
-		// Stream to Azure
-		azure.upload(zipFile);
-		
-		// Delete temporary local files
-		zipper.deleteZip(zipFile);
-		zipper.deleteDir(folder.toFile());
-		
-		return "/api/download/" + zipper.uuid;
+		try {
+			// Create local temporary files
+			folder = dirTool.initFolder();
+			zipFile = dirTool.initZip(folder);
+			File[] javaArtifacts = java.createProjectFiles(folder, attributes);
+			dirTool.zipFiles(zipFile, javaArtifacts);
+			
+			// Upload files to Azure as a blob
+			azure.upload(zipFile);
+		} catch (IOException e) {
+			throw e;
+		} finally {
+			if (folder != null) {
+				dirTool.deleteDir(folder);
+			}
+			if (zipFile != null) {
+				dirTool.deleteZip(zipFile);
+			}
+		}
+		return "/api/download/" + dirTool.uuid;
 	}
 	
 	@CrossOrigin(origins = "http://localhost:3000")

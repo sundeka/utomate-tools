@@ -1,7 +1,7 @@
 package com.utomate.utomateTools;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Path;
+import java.io.File;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DefaultAzureCredentialBuilder;
@@ -19,11 +19,10 @@ public class AzureController {
 			    .credential(creds)
 			    .containerName("utomate-blob-container")
 			    .buildClient();
-		System.out.println("AzureController: Successfully created BlobContainerClient");
 	}
 	
-	public void upload(Path zipFile) {
-		BlobClient blobClient = blobContainerClient.getBlobClient(zipFile.toFile().getName());
+	public void upload(File zipFile) {
+		BlobClient blobClient = blobContainerClient.getBlobClient(zipFile.getName());
 		blobClient.uploadFromFile(zipFile.toString());
 		System.out.println("Uploaded \"" + zipFile.toString() + "\" as a blob to Azure!");
 	}
