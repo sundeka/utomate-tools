@@ -7,9 +7,11 @@ public class Driver {
 		switch (type) {
 			case "chrome": {
 				this.type = DriverType.CHROME;
+				return;
 			}
 			case "firefox": {
 				this.type = DriverType.FIREFOX;
+				return;
 			}
 		}
 	}

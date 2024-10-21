@@ -16,19 +16,19 @@ public class JavaFactory {
 	
 	public File[] createProjectFiles(File folder, AutomationAttributes attributes) throws IOException {
 		File[] javaArtifacts = {
-				writeInstructionsFile(folder, attributes.getName()),
+				writeReadme(folder),
 				writeCodeFile(folder, attributes)
 		};
 		return javaArtifacts;
 	}
 	
-	public File writeInstructionsFile(File folder, String fileName) throws IOException {
+	public File writeReadme(File folder) throws IOException {
 		String template = String.format("HOW TO RUN:\n\n"
 				+ "1. Double-click the file called \"run\" in the project folder. \n"
 				+ "\nTroubleshooting\n\n"
 				+ "- Make sure you have the latest version of Java installed on your machine.\n"
-				+ "- Make sure Java is configured in your system's PATH variables (see: https://stackoverflow.com/a/44406470)\n", fileName);
-		File instructionsFile = new File(folder + "/" + "instructions.txt");
+				+ "- Make sure Java is configured in your system's PATH variables (see: https://stackoverflow.com/a/44406470)\n");
+		File instructionsFile = new File(folder + "/" + "README.txt");
 		FileWriter writer = new FileWriter(instructionsFile);
 		writer.write(template);
 		writer.close();
@@ -70,7 +70,7 @@ public class JavaFactory {
 		codeBuffer.append("\t}\n}");
 		
 		// Create the file
-		File codeFile = new File(folder + "/" + attributes.getName() + ".java");
+		File codeFile = new File(folder + "/" + "Main.java");
 		FileWriter writer = new FileWriter(codeFile);
 		writer.write(codeBuffer.toString());
 		writer.close();
@@ -81,23 +81,26 @@ public class JavaFactory {
 		// Defaults
 		imports.add("java.time.Duration");
 		imports.add("org.openqa.selenium.WebDriver");
+		imports.add("org.openqa.selenium.support.ui.Wait");
 		imports.add("org.openqa.selenium.support.ui.WebDriverWait");
+		imports.add("org.openqa.selenium.By");
+		imports.add("org.openqa.selenium.support.ui.ExpectedConditions");
 		
 		// WebDriver import
 		switch (attrs.getWebdriver().type) {
 			case DriverType.CHROME: {
 				imports.add("org.openqa.selenium.chrome.ChromeDriver");
+				break;
 			}
-			case DriverType.FIREFOX: {};
-			default: break;
+			case DriverType.FIREFOX: {
+				imports.add("org.openqa.selenium.firefox.Firefox");
+				break;
+			}
 		}
 		
 		// Get all needed imports depending how many different step types there are
 		for (StepType step : attrs.getAllUniqueStepTypes()) {
-			if (step==StepType.FIND) { 
-				imports.add("org.openqa.selenium.By");
-				imports.add("org.openqa.selenium.support.ui.ExpectedConditions");
-			};
+			if (step==StepType.FIND) {}
 			if (step==StepType.CLICK) {}
 			if (step==StepType.OPEN) {}
 			if (step==StepType.LOOP) {}
@@ -108,9 +111,11 @@ public class JavaFactory {
 		switch (attrs.getWebdriver().type) {
 			case DriverType.CHROME: {
 				initializations.add("WebDriver driver = new ChromeDriver()");
+				break;
 			}
 			case DriverType.FIREFOX: {
 				initializations.add("WebDriver driver = new FirefoxDriver()");
+				break;
 			}
 		};
 		initializations.add("Wait<WebDriver> wait = new WebDriverWait(driver, Duration.ofSeconds(10))");
@@ -122,6 +127,7 @@ public class JavaFactory {
 			switch (step.type) {
 				case StepType.FIND: {
 					logic.add("wait.until(ExpectedConditions."+ step.until + "(By." + step.strategy + "(\"" + step.locator.replace("\"", "'") + "\")))");
+					break;
 				}
 				case StepType.CLICK: {}
 				case StepType.OPEN: {}

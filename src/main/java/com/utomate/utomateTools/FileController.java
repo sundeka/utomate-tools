@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api")
@@ -37,12 +39,13 @@ public class FileController {
 			folder = dirTool.initFolder();
 			zipFile = dirTool.initZip(folder);
 			File[] javaArtifacts = java.createProjectFiles(folder, attributes);
-			dirTool.zipFiles(zipFile, javaArtifacts);
+			dirTool.zipFiles(attributes.getName(), zipFile, javaArtifacts);
 			
 			// Upload files to Azure as a blob
 			azure.upload(zipFile);
 		} catch (IOException e) {
-			throw e;
+			System.out.println(e);
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		} finally {
 			if (folder != null) {
 				dirTool.deleteDir(folder);
