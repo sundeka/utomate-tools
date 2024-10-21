@@ -13,15 +13,9 @@ import java.util.zip.ZipOutputStream;
 public class DirTool {
 	String uuid;
 	Path filesDir = Paths.get("src/main/resources/files");
-	File seleniumJavaJar = new File("src/main/resources/java_project_resources/selenium-java-4.21.0.jar");
-	File seleniumChromeDriverJar = new File("src/main/resources/java_project_resources/selenium-chrome-driver-4.21.0.jar");
-	File javaFile;
-	File instructionsFile;
 	
 	public DirTool() {
 		this.uuid = UUID.randomUUID().toString();
-		this.javaFile = new File(filesDir.toString() + "/" + this.uuid + "/" + "Main.java");
-		this.instructionsFile = new File(filesDir.toString() + "/" + this.uuid + "/" + "instructions.txt");
 	}
 	
 	public File initFolder() {
